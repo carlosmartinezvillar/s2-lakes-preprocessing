@@ -331,12 +331,57 @@ def tile_month_distribution():
 ####################################################################################################
 # OTHER STATISTICS
 ####################################################################################################
-def calculate_band_means():
+def calculate_band_normal_parameters():
 	'''
 	Get and store the bands' mean and standard deviation of the pixel values for the entire dataset
 	of chips (a la imagenet).
 	'''
-	pass
+	training_chips = glob.glob("*_B0X.tif",root_dir=f"{DATA_DIR}/training")
+
+	r_avg_sum = 0.0
+	g_avg_sum = 0.0
+	b_avg_sum = 0.0
+	n_avg_sum = 0.0
+
+	r_std_sum = 0.0
+	g_std_sum = 0.0
+	b_std_sum = 0.0
+	n_std_sum = 0.0
+
+	total_pixels = 0.0
+
+	for chip in training_chips:
+		reader = rio.open(chip,'r')
+
+		r_min_i,r_max_i,r_avg_i,r_std_i = reader.statistics(bidx=1,approx=False,clear_cache=False)
+		g_min_i,g_max_i,g_avg_i,g_std_i = reader.statistics(bidx=2,approx=False,clear_cache=False)
+		b_min_i,b_max_i,b_avg_i,b_std_i = reader.statistics(bidx=3,approx=False,clear_cache=False)
+		n_min_i,n_max_i,n_avg_i,n_std_i = reader.statistics(bidx=4,approx=False,clear_cache=False)
+
+		chip_size = reader.height * reader.width
+		total_pixels += chip_size
+
+		r_avg_sum += r_avg_i * chip_size
+		g_avg_sum += g_avg_i * chip_size
+		b_avg_sum += b_avg_i * chip_size
+		n_avg_sum += n_avg_i * chip_size
+
+		r_std_sum += r_std_i**2 * chip_size #store sum of squared-differences
+		g_std_sum += g_std_i**2 * chip_size
+		b_std_sum += b_std_i**2 * chip_size
+		n_std_sum += n_std_i**2 * chip_size
+
+	r_avg = r_avg_sum / total_pixels
+	g_avg = g_avg_sum / total_pixels
+	b_avg = b_avg_sum / total_pixels
+	n_avg = n_avg_sum / total_pixels
+
+	r_std = np.sqrt(r_std_sum / total_pixels)
+	g_std = np.sqrt(g_std_sum / total_pixels)
+	b_std = np.sqrt(b_std_sum / total_pixels)
+	n_std = np.sqrt(n_std_sum / total_pixels)
+
+	return ([r_avg,g_avg,b_avg,n_avg],[r_std,g_std,b_std,n_std])
 
 
 def calculate_band_medians():
@@ -361,7 +406,7 @@ def parse_args():
 	parser = argparse.ArgumentParser()
 	parser.add_argument('--data-dir',default='./dat',
 		help="Dataset directory")
-	parser.add_argument('--chip-dir',
+	parser.add_argument('--chip-dir',  #<--------------------------------- FIX | separate TILES v chips
 		help="Chip directory")
 	parser.add_argument('--kml',action='store_true',default=False,
 		help="Read tile kml and filter.")

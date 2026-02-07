@@ -114,6 +114,18 @@ class Product():
 		#format: DATE_DSTRIP_TILE_ROTATION_WINROW_WINCOL_LBL.tif	
 		self.base_chip_id = self.gee_id + '_' + self.orbit
 
+
+	def parse_xml(self):
+		assert os.path.isfile(path), "No file found in path %s" % path
+
+		# get datastrip
+		root      = ET.parse(path).getroot()
+		prod_info = root.find('n1:General_Info',namespaces=ns).find('Product_Info')
+		granule   = prod_info.find('Product_Organisation').find('Granule_List').find('Granule')
+		datastrip = granule.attrib['datastripIdentifier'].split('_')[-2][1:]
+
+	return datastrip
+
 	def get_band_filenames(self):
 		return [f'{self.tile}_{self.date}_{b}_10m.jp2' for b in ['B02','B03','B04','B08']]
 
