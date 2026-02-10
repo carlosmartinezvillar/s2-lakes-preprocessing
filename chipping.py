@@ -346,7 +346,8 @@ def chip_image(product,index,N):
 		# print(f'Loading {reader.name[-34:]}')
 		band_array = reader.read(1)
 		zero_mask  = band_array == 0
-		cutoff     = np.percentile(band_array[~zero_mask],99) #This might have to be lower?
+		cutoff     = int(np.percentile(band_array[~zero_mask],99)) # DO NOT PASS FLOAT TO CLIP HERE!!!
+		# cutoff     = np.percentile(band_array[~zero_mask],99) #This might have to be lower?
 		band_array = np.clip(band_array,0,cutoff)
 		band_array = (band_array / cutoff * 255).astype(np.uint8)
 		rgbn.append(band_array)
